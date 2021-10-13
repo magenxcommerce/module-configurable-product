@@ -7,15 +7,17 @@ declare(strict_types=1);
 
 namespace Magento\ConfigurableProduct\Test\Unit\Model\Plugin\Frontend;
 
-use Magento\Catalog\Model\Product;
 use Magento\ConfigurableProduct\Model\Plugin\Frontend\ProductIdentitiesExtender;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
-use PHPUnit\Framework\TestCase;
+use Magento\Catalog\Model\Product;
 
-class ProductIdentitiesExtenderTest extends TestCase
+/**
+ * Class ProductIdentitiesExtenderTest
+ */
+class ProductIdentitiesExtenderTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @var \PHPUnit\Framework\MockObject\MockObject|Configurable
+     * @var \PHPUnit_Framework_MockObject_MockObject|Configurable
      */
     private $configurableTypeMock;
 
@@ -24,10 +26,10 @@ class ProductIdentitiesExtenderTest extends TestCase
      */
     private $plugin;
 
-    /** @var  MockObject|Product */
+    /** @var  MockObject|\Magento\Catalog\Model\Product */
     private $product;
 
-    protected function setUp(): void
+    protected function setUp()
     {
         $this->product = $this->getMockBuilder(Product::class)
             ->disableOriginalConstructor()

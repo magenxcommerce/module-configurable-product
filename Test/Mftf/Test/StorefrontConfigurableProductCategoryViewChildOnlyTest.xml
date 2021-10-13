@@ -17,9 +17,6 @@
             <severity value="CRITICAL"/>
             <testCaseId value="MC-5832"/>
             <group value="ConfigurableProduct"/>
-            <skip>
-                <issueId value="MC-17140"/>
-            </skip>
         </annotations>
         <before>
             <!-- Create the category -->
@@ -88,7 +85,7 @@
         </before>
 
         <after>
-            <actionGroup ref="logout" stepKey="adminLogout"/>
+            <amOnPage url="admin/admin/auth/logout/" stepKey="logout"/>
             <deleteData createDataKey="createConfigProduct" stepKey="deleteConfigProduct"/>
             <deleteData createDataKey="createConfigChildProduct1" stepKey="deleteConfigChildProduct1"/>
             <deleteData createDataKey="createConfigChildProduct2" stepKey="deleteConfigChildProduct2"/>
