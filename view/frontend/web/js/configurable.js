@@ -12,9 +12,8 @@ define([
     'mage/translate',
     'priceUtils',
     'priceBox',
-    'jquery-ui-modules/widget',
-    'jquery/jquery.parsequery',
-    'fotoramaVideoEvents'
+    'jquery/ui',
+    'jquery/jquery.parsequery'
 ], function ($, _, mageTemplate, $t, priceUtils) {
     'use strict';
 
@@ -124,8 +123,6 @@ define([
             if (this.options.spConfig.inputsInitialized) {
                 this._setValuesByAttribute();
             }
-
-            this._setInitialOptionsLabels();
         },
 
         /**
@@ -140,12 +137,7 @@ define([
             });
 
             $.each(queryParams, $.proxy(function (key, value) {
-                if (this.options.spConfig.attributes[key] !== undefined &&
-                    _.find(this.options.spConfig.attributes[key].options, function (element) {
-                        return element.id === value;
-                    })) {
-                    this.options.values[key] = value;
-                }
+                this.options.values[key] = value;
             }, this));
         },
 
@@ -161,26 +153,8 @@ define([
 
                 if (element.value) {
                     attributeId = element.id.replace(/[a-z]*/, '');
-
-                    if (this.options.spConfig.attributes[attributeId] !== undefined &&
-                        _.find(this.options.spConfig.attributes[attributeId].options, function (optionElement) {
-                            return optionElement.id === element.value;
-                        })) {
-                        this.options.values[attributeId] = element.value;
-                    }
+                    this.options.values[attributeId] = element.value;
                 }
-            }, this));
-        },
-
-        /**
-         * Set additional field with initial label to be used when switching between options with different prices.
-         * @private
-         */
-        _setInitialOptionsLabels: function () {
-            $.each(this.options.spConfig.attributes, $.proxy(function (index, element) {
-                $.each(element.options, $.proxy(function (optIndex, optElement) {
-                    this.options.spConfig.attributes[index].options[optIndex].initialLabel = optElement.label;
-                }, this));
             }, this));
         },
 
@@ -308,21 +282,15 @@ define([
         _changeProductImage: function () {
             var images,
                 initialImages = this.options.mediaGalleryInitial,
-                gallery = $(this.options.mediaGallerySelector).data('gallery');
+                galleryObject = $(this.options.mediaGallerySelector).data('gallery');
 
-            if (_.isUndefined(gallery)) {
-                $(this.options.mediaGallerySelector).on('gallery:loaded', function () {
-                    this._changeProductImage();
-                }.bind(this));
-
+            if (!galleryObject) {
                 return;
             }
 
             images = this.options.spConfig.images[this.simpleProduct];
 
             if (images) {
-                images = this._sortImages(images);
-
                 if (this.options.gallerySwitchStrategy === 'prepend') {
                     images = images.concat(initialImages);
                 }
@@ -330,46 +298,18 @@ define([
                 images = $.extend(true, [], images);
                 images = this._setImageIndex(images);
 
-                gallery.updateData(images);
-                this._addFotoramaVideoEvents(false);
+                galleryObject.updateData(images);
+
+                $(this.options.mediaGallerySelector).AddFotoramaVideoEvents({
+                    selectedOption: this.simpleProduct,
+                    dataMergeStrategy: this.options.gallerySwitchStrategy
+                });
             } else {
-                gallery.updateData(initialImages);
-                this._addFotoramaVideoEvents(true);
-            }
-        },
-
-        /**
-         * Add video events
-         *
-         * @param {Boolean} isInitial
-         * @private
-         */
-        _addFotoramaVideoEvents: function (isInitial) {
-            if (_.isUndefined($.mage.AddFotoramaVideoEvents)) {
-                return;
-            }
-
-            if (isInitial) {
+                galleryObject.updateData(initialImages);
                 $(this.options.mediaGallerySelector).AddFotoramaVideoEvents();
-
-                return;
             }
 
-            $(this.options.mediaGallerySelector).AddFotoramaVideoEvents({
-                selectedOption: this.simpleProduct,
-                dataMergeStrategy: this.options.gallerySwitchStrategy
-            });
-        },
-
-        /**
-         * Sorting images array
-         *
-         * @private
-         */
-        _sortImages: function (images) {
-            return _.sortBy(images, function (image) {
-                return image.position;
-            });
+            galleryObject.first();
         },
 
         /**
@@ -419,18 +359,8 @@ define([
                 prevConfig,
                 index = 1,
                 allowedProducts,
-                allowedProductsByOption,
-                allowedProductsAll,
                 i,
-                j,
-                finalPrice = parseFloat(this.options.spConfig.prices.finalPrice.amount),
-                optionFinalPrice,
-                optionPriceDiff,
-                optionPrices = this.options.spConfig.optionPrices,
-                allowedOptions = [],
-                indexKey,
-                allowedProductMinPrice,
-                allowedProductsAllMinPrice;
+                j;
 
             this._clearSelect(element);
             element.options[0] = new Option('', '');
@@ -442,74 +372,29 @@ define([
             }
 
             if (options) {
-                for (indexKey in this.options.spConfig.index) {
+                for (i = 0; i < options.length; i++) {
+                    allowedProducts = [];
+
                     /* eslint-disable max-depth */
-                    if (this.options.spConfig.index.hasOwnProperty(indexKey)) {
-                        allowedOptions = allowedOptions.concat(_.values(this.options.spConfig.index[indexKey]));
-                    }
-                }
-
-                if (prevConfig) {
-                    allowedProductsByOption = {};
-                    allowedProductsAll = [];
-
-                    for (i = 0; i < options.length; i++) {
-                        /* eslint-disable max-depth */
+                    if (prevConfig) {
                         for (j = 0; j < options[i].products.length; j++) {
                             // prevConfig.config can be undefined
                             if (prevConfig.config &&
                                 prevConfig.config.allowedProducts &&
                                 prevConfig.config.allowedProducts.indexOf(options[i].products[j]) > -1) {
-                                if (!allowedProductsByOption[i]) {
-                                    allowedProductsByOption[i] = [];
-                                }
-                                allowedProductsByOption[i].push(options[i].products[j]);
-                                allowedProductsAll.push(options[i].products[j]);
+                                allowedProducts.push(options[i].products[j]);
                             }
                         }
+                    } else {
+                        allowedProducts = options[i].products.slice(0);
                     }
 
-                    if (typeof allowedProductsAll[0] !== 'undefined' &&
-                        typeof optionPrices[allowedProductsAll[0]] !== 'undefined') {
-                        allowedProductsAllMinPrice = this._getAllowedProductWithMinPrice(allowedProductsAll);
-                        finalPrice = parseFloat(optionPrices[allowedProductsAllMinPrice].finalPrice.amount);
-                    }
-                }
-
-                for (i = 0; i < options.length; i++) {
-                    if (prevConfig && typeof allowedProductsByOption[i] === 'undefined') {
-                        continue; //jscs:ignore disallowKeywords
-                    }
-
-                    allowedProducts = prevConfig ? allowedProductsByOption[i] : options[i].products.slice(0);
-                    optionPriceDiff = 0;
-
-                    if (typeof allowedProducts[0] !== 'undefined' &&
-                        typeof optionPrices[allowedProducts[0]] !== 'undefined') {
-                        allowedProductMinPrice = this._getAllowedProductWithMinPrice(allowedProducts);
-                        optionFinalPrice = parseFloat(optionPrices[allowedProductMinPrice].finalPrice.amount);
-                        optionPriceDiff = optionFinalPrice - finalPrice;
-                        options[i].label = options[i].initialLabel;
-
-                        if (optionPriceDiff !== 0) {
-                            options[i].label += ' ' + priceUtils.formatPrice(
-                                optionPriceDiff,
-                                this.options.priceFormat,
-                                true
-                            );
-                        }
-                    }
-
-                    if (allowedProducts.length > 0 || _.include(allowedOptions, options[i].id)) {
+                    if (allowedProducts.length > 0) {
                         options[i].allowedProducts = allowedProducts;
                         element.options[index] = new Option(this._getOptionLabel(options[i]), options[i].id);
 
                         if (typeof options[i].price !== 'undefined') {
-                            element.options[index].setAttribute('price', options[i].price);
-                        }
-
-                        if (allowedProducts.length === 0) {
-                            element.options[index].disabled = true;
+                            element.options[index].setAttribute('price', options[i].prices);
                         }
 
                         element.options[index].config = options[i];
@@ -573,54 +458,22 @@ define([
         _getPrices: function () {
             var prices = {},
                 elements = _.toArray(this.options.settings),
-                allowedProduct;
+                hasProductPrice = false;
 
             _.each(elements, function (element) {
                 var selected = element.options[element.selectedIndex],
                     config = selected && selected.config,
                     priceValue = {};
 
-                if (config && config.allowedProducts.length === 1) {
+                if (config && config.allowedProducts.length === 1 && !hasProductPrice) {
                     priceValue = this._calculatePrice(config);
-                } else if (element.value) {
-                    allowedProduct = this._getAllowedProductWithMinPrice(config.allowedProducts);
-                    priceValue = this._calculatePrice({
-                        'allowedProducts': [
-                            allowedProduct
-                        ]
-                    });
+                    hasProductPrice = true;
                 }
 
-                if (!_.isEmpty(priceValue)) {
-                    prices.prices = priceValue;
-                }
+                prices[element.attributeId] = priceValue;
             }, this);
 
             return prices;
-        },
-
-        /**
-         * Get product with minimum price from selected options.
-         *
-         * @param {Array} allowedProducts
-         * @returns {String}
-         * @private
-         */
-        _getAllowedProductWithMinPrice: function (allowedProducts) {
-            var optionPrices = this.options.spConfig.optionPrices,
-                product = {},
-                optionMinPrice, optionFinalPrice;
-
-            _.each(allowedProducts, function (allowedProduct) {
-                optionFinalPrice = parseFloat(optionPrices[allowedProduct].finalPrice.amount);
-
-                if (_.isEmpty(product) || optionFinalPrice < optionMinPrice) {
-                    optionMinPrice = optionFinalPrice;
-                    product = allowedProduct;
-                }
-            }, this);
-
-            return product;
         },
 
         /**
@@ -692,13 +545,6 @@ define([
             } else {
                 $(this.options.slyOldPriceSelector).hide();
             }
-
-            $(document).trigger('updateMsrpPriceBlock',
-                [
-                    optionId,
-                    this.options.spConfig.optionPrices
-                ]
-            );
         },
 
         /**

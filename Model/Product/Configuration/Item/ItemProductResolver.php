@@ -13,17 +13,16 @@ use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Model\Product\Configuration\Item\ItemResolverInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Catalog\Model\Product;
-use Magento\Store\Model\ScopeInterface;
 
 /**
- * Resolves the product from a configured item.
+ * {@inheritdoc}
  */
 class ItemProductResolver implements ItemResolverInterface
 {
     /**
      * Path in config to the setting which defines if parent or child product should be used to generate a thumbnail.
      */
-    public const CONFIG_THUMBNAIL_SOURCE = 'checkout/cart/configurable_product_image';
+    const CONFIG_THUMBNAIL_SOURCE = 'checkout/cart/configurable_product_image';
 
     /**
      * @var ScopeConfigInterface
@@ -39,21 +38,27 @@ class ItemProductResolver implements ItemResolverInterface
     }
 
     /**
-     * Get the final product from a configured item by product type and selection.
-     *
-     * @param ItemInterface $item
-     * @return ProductInterface
+     * {@inheritdoc}
      */
-    public function getFinalProduct(ItemInterface $item): ProductInterface
+    public function getFinalProduct(ItemInterface $item) : ProductInterface
     {
         /**
          * Show parent product thumbnail if it must be always shown according to the related setting in system config
          * or if child thumbnail is not available.
          */
-        $finalProduct = $item->getProduct();
+        $parentProduct = $item->getProduct();
+        $finalProduct = $parentProduct;
         $childProduct = $this->getChildProduct($item);
-        if ($childProduct !== null && $this->isUseChildProduct($childProduct)) {
-            $finalProduct = $childProduct;
+        if ($childProduct !== $parentProduct) {
+            $configValue = $this->scopeConfig->getValue(
+                self::CONFIG_THUMBNAIL_SOURCE,
+                \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+            );
+            $childThumb = $childProduct->getData('thumbnail');
+            $finalProduct =
+                ($configValue == Thumbnail::OPTION_USE_PARENT_IMAGE) || (!$childThumb || $childThumb == 'no_selection')
+                    ? $parentProduct
+                    : $childProduct;
         }
         return $finalProduct;
     }
@@ -62,30 +67,15 @@ class ItemProductResolver implements ItemResolverInterface
      * Get item configurable child product.
      *
      * @param ItemInterface $item
-     * @return Product | null
+     * @return Product
      */
-    private function getChildProduct(ItemInterface $item): ?Product
+    private function getChildProduct(ItemInterface $item) : Product
     {
-        /** @var \Magento\Quote\Model\Quote\Item\Option $option */
         $option = $item->getOptionByCode('simple_product');
-        return $option ? $option->getProduct() : null;
-    }
-
-    /**
-     * Is need to use child product
-     *
-     * @param Product $childProduct
-     * @return bool
-     */
-    private function isUseChildProduct(Product $childProduct): bool
-    {
-        $configValue = $this->scopeConfig->getValue(
-            self::CONFIG_THUMBNAIL_SOURCE,
-            ScopeInterface::SCOPE_STORE
-        );
-        $childThumb = $childProduct->getData('thumbnail');
-        return $configValue !== Thumbnail::OPTION_USE_PARENT_IMAGE
-            && $childThumb !== null
-            && $childThumb !== 'no_selection';
+        $product = $item->getProduct();
+        if ($option) {
+            $product = $option->getProduct();
+        }
+        return $product;
     }
 }

@@ -21,8 +21,6 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Escaper;
 
 /**
- * Associated products helper
- *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class AssociatedProducts
@@ -233,8 +231,6 @@ class AssociatedProducts
      *
      * @return void
      * @throws \Zend_Currency_Exception
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
-     * phpcs:disable Generic.Metrics.NestingLevel.TooHigh
      */
     protected function prepareVariations()
     {
@@ -266,15 +262,14 @@ class AssociatedProducts
                                 'position' => $configurableAttributes[$attribute->getAttributeId()]['position'],
                                 'chosen' => [],
                             ];
-                            $options = $attribute->usesSource() ? $attribute->getSource()->getAllOptions() : [];
-                            foreach ($options as $option) {
-                                if (!empty($option['value'])) {
-                                    $attributes[$attribute->getAttributeId()]['options'][$option['value']] = [
+                            foreach ($attribute->getOptions() as $option) {
+                                if (!empty($option->getValue())) {
+                                    $attributes[$attribute->getAttributeId()]['options'][$option->getValue()] = [
                                         'attribute_code' => $attribute->getAttributeCode(),
                                         'attribute_label' => $attribute->getStoreLabel(0),
-                                        'id' => $option['value'],
-                                        'label' => $option['label'],
-                                        'value' => $option['value'],
+                                        'id' => $option->getValue(),
+                                        'label' => $option->getLabel(),
+                                        'value' => $option->getValue(),
                                     ];
                                 }
                             }
@@ -321,7 +316,6 @@ class AssociatedProducts
         $this->productIds = $productIds;
         $this->productAttributes = array_values($attributes);
     }
-    //phpcs: enable
 
     /**
      * Get JSON string that contains attribute code and value

@@ -3,6 +3,7 @@
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
+
 ?>
 <script type="text/x-magento-template" id="tier-prices-template">
     <ul class="prices-tier items">
@@ -14,13 +15,10 @@
                 + '</span>'
             + '</span>'; %>
         <li class="item">
-            <%= '<?= $block->escapeHtml(__('Buy %1 for %2 each and', '%1', '%2')) ?>'
-            .replace('%1', item.qty)
-            .replace('%2', priceStr) %>
-            <strong class="benefit">
-                <?= $block->escapeHtml(__('save')) ?><span
-                        class="percent tier-<%= key %>">&nbsp;<%= item.percentage %></span>%
-            </strong>
+            <%= $t('Buy %1 for %2 each and').replace('%1', item.qty).replace('%2', priceStr) %>
+                <strong class="benefit">
+                        <%= $t('save') %><span class="percent tier-<%= key %>">&nbsp;<%= item.percentage %></span>%
+                </strong>
         </li>
         <% }); %>
     </ul>

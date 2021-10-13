@@ -31,11 +31,7 @@
         </before>
         <after>
             <deleteData createDataKey="createCategory" stepKey="deleteCategory"/>
-            <actionGroup ref="deleteProductBySku" stepKey="deleteProduct">
-                <argument name="sku" value="{{_defaultProduct.sku}}"/>
-            </actionGroup>
-            <actionGroup ref="clearFiltersAdminDataGrid" stepKey="clearProductsGridFilters"/>
-            <actionGroup ref="logout" stepKey="adminLogout"/>
+            <amOnPage url="admin/admin/auth/logout/" stepKey="amOnLogoutPage"/>
         </after>
 
         <!-- Verify configurable product details in storefront product view -->
@@ -76,11 +72,7 @@
         </before>
         <after>
             <deleteData createDataKey="createCategory" stepKey="deleteCategory"/>
-            <actionGroup ref="deleteProductBySku" stepKey="deleteProduct">
-                <argument name="sku" value="{{_defaultProduct.sku}}"/>
-            </actionGroup>
-            <actionGroup ref="clearFiltersAdminDataGrid" stepKey="clearProductsGridFilters"/>
-            <actionGroup ref="logout" stepKey="adminLogout"/>
+            <amOnPage url="admin/admin/auth/logout/" stepKey="amOnLogoutPage"/>
         </after>
 
         <!-- Verify configurable product options in storefront product view -->
@@ -121,11 +113,7 @@
         </before>
         <after>
             <deleteData createDataKey="createCategory" stepKey="deleteCategory"/>
-            <actionGroup ref="deleteProductBySku" stepKey="deleteProduct">
-                <argument name="sku" value="{{_defaultProduct.sku}}"/>
-            </actionGroup>
-            <actionGroup ref="clearFiltersAdminDataGrid" stepKey="clearProductsGridFilters"/>
-            <actionGroup ref="logout" stepKey="adminLogout"/>
+            <amOnPage url="admin/admin/auth/logout/" stepKey="amOnLogoutPage"/>
         </after>
 
         <!-- Verify adding configurable product to cart after an option is selected in storefront product view -->
@@ -163,11 +151,7 @@
         </before>
         <after>
             <deleteData createDataKey="createCategory" stepKey="deleteCategory"/>
-            <actionGroup ref="deleteProductBySku" stepKey="deleteProduct">
-                <argument name="sku" value="{{_defaultProduct.sku}}"/>
-            </actionGroup>
-            <actionGroup ref="clearFiltersAdminDataGrid" stepKey="clearProductsGridFilters"/>
-            <actionGroup ref="logout" stepKey="adminLogout"/>
+            <amOnPage url="admin/admin/auth/logout/" stepKey="amOnLogoutPage"/>
         </after>
 
         <!-- Verify not able to add configurable product to cart when no option is selected in storefront product view -->

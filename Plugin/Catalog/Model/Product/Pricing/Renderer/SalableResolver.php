@@ -5,7 +5,7 @@
  */
 namespace Magento\ConfigurableProduct\Plugin\Catalog\Model\Product\Pricing\Renderer;
 
-use Magento\ConfigurableProduct\Model\Product\Type\Configurable as TypeConfigurable;
+use Magento\ConfigurableProduct\Pricing\Price\LowestPriceOptionsProviderInterface;
 
 /**
  * A plugin for a salable resolver.
@@ -13,25 +13,29 @@ use Magento\ConfigurableProduct\Model\Product\Type\Configurable as TypeConfigura
 class SalableResolver
 {
     /**
-     * @var TypeConfigurable
+     * @var LowestPriceOptionsProviderInterface
      */
-    private $typeConfigurable;
+    private $lowestPriceOptionsProvider;
 
     /**
-     * @param TypeConfigurable $typeConfigurable
+     * @param LowestPriceOptionsProviderInterface $lowestPriceOptionsProvider
      */
-    public function __construct(TypeConfigurable $typeConfigurable)
-    {
-        $this->typeConfigurable = $typeConfigurable;
+    public function __construct(
+        LowestPriceOptionsProviderInterface $lowestPriceOptionsProvider
+    ) {
+        $this->lowestPriceOptionsProvider = $lowestPriceOptionsProvider;
     }
 
     /**
-     * Performs an additional check whether given configurable product has at least one configuration in-stock.
+     * Performs an additional check whether given configurable product has
+     * at least one configuration in-stock.
      *
      * @param \Magento\Catalog\Model\Product\Pricing\Renderer\SalableResolver $subject
      * @param bool $result
      * @param \Magento\Framework\Pricing\SaleableInterface $salableItem
+     *
      * @return bool
+     *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function afterIsSalable(
@@ -39,8 +43,10 @@ class SalableResolver
         $result,
         \Magento\Framework\Pricing\SaleableInterface $salableItem
     ) {
-        if ($salableItem->getTypeId() === TypeConfigurable::TYPE_CODE && $result) {
-            $result = $this->typeConfigurable->isSalable($salableItem);
+        if ($salableItem->getTypeId() == 'configurable' && $result) {
+            if (!$this->lowestPriceOptionsProvider->getProducts($salableItem)) {
+                $result = false;
+            }
         }
 
         return $result;

@@ -1,5 +1,6 @@
 <?php
 /**
+ *
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
@@ -10,11 +11,6 @@ use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Exception\StateException;
 
-/**
- * Configurable product link management.
- *
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
- */
 class LinkManagement implements \Magento\ConfigurableProduct\Api\LinkManagementInterface
 {
     /**
@@ -72,7 +68,7 @@ class LinkManagement implements \Magento\ConfigurableProduct\Api\LinkManagementI
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getChildren($sku)
     {
@@ -111,15 +107,11 @@ class LinkManagement implements \Magento\ConfigurableProduct\Api\LinkManagementI
     }
 
     /**
-     * @inheritdoc
-     * @throws InputException
-     * @throws NoSuchEntityException
-     * @throws StateException
-     * @throws \Magento\Framework\Exception\CouldNotSaveException
+     * {@inheritdoc}
      */
     public function addChild($sku, $childSku)
     {
-        $product = $this->productRepository->get($sku, true);
+        $product = $this->productRepository->get($sku);
         $child = $this->productRepository->get($childSku);
 
         $childrenIds = array_values($this->configurableType->getChildrenIds($product->getId())[0]);
@@ -132,7 +124,7 @@ class LinkManagement implements \Magento\ConfigurableProduct\Api\LinkManagementI
             throw new StateException(__("The parent product doesn't have configurable product options."));
         }
 
-        $attributeData = [];
+        $attributeIds = [];
         foreach ($configurableProductOptions as $configurableProductOption) {
             $attributeCode = $configurableProductOption->getProductAttribute()->getAttributeCode();
             if (!$child->getData($attributeCode)) {
@@ -143,11 +135,9 @@ class LinkManagement implements \Magento\ConfigurableProduct\Api\LinkManagementI
                     )
                 );
             }
-            $attributeData[$configurableProductOption->getAttributeId()] = [
-                'position' => $configurableProductOption->getPosition()
-            ];
+            $attributeIds[] = $configurableProductOption->getAttributeId();
         }
-        $configurableOptionData = $this->getConfigurableAttributesData($attributeData);
+        $configurableOptionData = $this->getConfigurableAttributesData($attributeIds);
 
         /** @var \Magento\ConfigurableProduct\Helper\Product\Options\Factory $optionFactory */
         $optionFactory = $this->getOptionsFactory();
@@ -160,11 +150,7 @@ class LinkManagement implements \Magento\ConfigurableProduct\Api\LinkManagementI
     }
 
     /**
-     * @inheritdoc
-     * @throws InputException
-     * @throws NoSuchEntityException
-     * @throws StateException
-     * @throws \Magento\Framework\Exception\CouldNotSaveException
+     * {@inheritdoc}
      */
     public function removeChild($sku, $childSku)
     {
@@ -213,16 +199,16 @@ class LinkManagement implements \Magento\ConfigurableProduct\Api\LinkManagementI
     /**
      * Get Configurable Attribute Data
      *
-     * @param int[] $attributeData
+     * @param int[] $attributeIds
      * @return array
      */
-    private function getConfigurableAttributesData($attributeData)
+    private function getConfigurableAttributesData($attributeIds)
     {
         $configurableAttributesData = [];
         $attributeValues = [];
         $attributes = $this->attributeFactory->create()
             ->getCollection()
-            ->addFieldToFilter('attribute_id', array_keys($attributeData))
+            ->addFieldToFilter('attribute_id', $attributeIds)
             ->getItems();
         foreach ($attributes as $attribute) {
             foreach ($attribute->getOptions() as $option) {
@@ -239,7 +225,6 @@ class LinkManagement implements \Magento\ConfigurableProduct\Api\LinkManagementI
                     'attribute_id' => $attribute->getId(),
                     'code' => $attribute->getAttributeCode(),
                     'label' => $attribute->getStoreLabel(),
-                    'position' => $attributeData[$attribute->getId()]['position'],
                     'values' => $attributeValues,
                 ];
         }

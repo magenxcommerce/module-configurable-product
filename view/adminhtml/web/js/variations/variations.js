@@ -383,48 +383,26 @@ define([
          * Chose action for the form save button
          */
         saveFormHandler: function () {
-            this.formElement().validate();
-
-            if (this.formElement().source.get('params.invalid') === false) {
-                this.serializeData();
-            }
+            this.serializeData();
 
             if (this.checkForNewAttributes()) {
                 this.formSaveParams = arguments;
                 this.attributeSetHandlerModal().openModal();
             } else {
-                if (this.validateForm(this.formElement())) {
-                    this.clearOutdatedData();
-                }
                 this.formElement().save(arguments[0], arguments[1]);
-
-                if (this.formElement().source.get('params.invalid')) {
-                    this.unserializeData();
-                }
             }
-        },
-
-        /**
-         * @param {Object} formElement
-         *
-         * Validates each form element and returns true, if all elements are valid.
-         */
-        validateForm: function (formElement) {
-            formElement.validate();
-
-            return !formElement.additionalInvalid && !formElement.source.get('params.invalid');
         },
 
         /**
          * Serialize data for specific form fields
          *
-         * Serializes some complex data fields
+         * Get data from outdated fields, serialize it and produce new form fields.
          *
-         * Original fields:
+         * Outdated fields:
          *   - configurable-matrix;
          *   - associated_product_ids.
          *
-         * Serialized fields in request:
+         * New fields:
          *   - configurable-matrix-serialized;
          *   - associated_product_ids_serialized.
          */
@@ -432,47 +410,13 @@ define([
             if (this.source.data['configurable-matrix']) {
                 this.source.data['configurable-matrix-serialized'] =
                     JSON.stringify(this.source.data['configurable-matrix']);
+                delete this.source.data['configurable-matrix'];
             }
 
             if (this.source.data['associated_product_ids']) {
                 this.source.data['associated_product_ids_serialized'] =
                     JSON.stringify(this.source.data['associated_product_ids']);
-            }
-        },
-
-        /**
-         * Clear outdated data for specific form fields
-         *
-         * Outdated fields:
-         *   - configurable-matrix;
-         *   - associated_product_ids.
-         */
-        clearOutdatedData: function () {
-            if (this.source.data['configurable-matrix']) {
-                delete this.source.data['configurable-matrix'];
-            }
-
-            if (this.source.data['associated_product_ids']) {
                 delete this.source.data['associated_product_ids'];
-            }
-        },
-
-        /**
-         * Unserialize data for specific form fields
-         *
-         * Unserializes some fields that were serialized this.serializeData
-         */
-        unserializeData: function () {
-            if (this.source.data['configurable-matrix-serialized']) {
-                this.source.data['configurable-matrix'] =
-                    JSON.parse(this.source.data['configurable-matrix-serialized']);
-                delete this.source.data['configurable-matrix-serialized'];
-            }
-
-            if (this.source.data['associated_product_ids_serialized']) {
-                this.source.data['associated_product_ids'] =
-                    JSON.parse(this.source.data['associated_product_ids_serialized']);
-                delete this.source.data['associated_product_ids_serialized'];
             }
         },
 
@@ -499,20 +443,20 @@ define([
          * @returns {Boolean}
          */
         addNewAttributeSetHandler: function () {
-            var chosenAttributeSetOption;
+            var choosenAttributeSetOption;
 
             this.formElement().validate();
 
             if (this.formElement().source.get('params.invalid') === false) {
-                chosenAttributeSetOption = this.attributeSetSelection;
+                choosenAttributeSetOption = this.attributeSetSelection;
 
-                if (chosenAttributeSetOption === 'new') {
+                if (choosenAttributeSetOption === 'new') {
                     this.createNewAttributeSet();
 
                     return false;
                 }
 
-                if (chosenAttributeSetOption === 'existing') {
+                if (choosenAttributeSetOption === 'existing') {
                     this.set(
                         'skeletonAttributeSet',
                         this.attributeSetId
@@ -523,10 +467,6 @@ define([
 
                 return true;
             }
-
-            this.unserializeData();
-
-            return false;
         },
 
         /**
