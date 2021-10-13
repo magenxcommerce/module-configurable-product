@@ -14,14 +14,14 @@
             <title value="Out of stock configurable attribute option doesn't show in Layered Navigation"/>
             <description value=" Login as admin and verify out of stock configurable attribute option doesn't show in Layered Navigation"/>
             <testCaseId value="MC-13734"/>
-            <severity value="BLOCKER"/>
+            <severity value="CRITICAL"/>
             <group value="ConfigurableProduct"/>
             <group value="mtf_migrated"/>
         </annotations>
 
         <before>
             <!-- Login as Admin -->
-            <actionGroup ref="AdminLoginActionGroup" stepKey="loginToAdminPanel"/>
+            <actionGroup ref="LoginAsAdmin" stepKey="loginToAdminPanel"/>
 
             <!-- Create Default Category -->
             <createData entity="_defaultCategory" stepKey="createCategory"/>
@@ -116,16 +116,13 @@
             <deleteData createDataKey="createConfigChildProduct2" stepKey="deleteConfigChildProduct2"/>
             <deleteData createDataKey="createConfigChildProduct3" stepKey="deleteConfigChildProduct3"/>
             <deleteData createDataKey="createConfigProductAttribute" stepKey="deleteAttribute"/>
-            <actionGroup ref="AdminLogoutActionGroup" stepKey="logout"/>
-
-            <!-- Reindex invalidated indices after product attribute has been created/deleted -->
-            <magentoCron groups="index" stepKey="reindexInvalidatedIndices"/>
+            <actionGroup ref="logout" stepKey="logout"/>
         </after>
 
         <!-- Open Product Index Page and Filter First Child product -->
         <amOnPage url="{{AdminProductIndexPage.url}}" stepKey="navigateToProductIndex"/>
         <waitForPageLoad stepKey="waitForProductIndexPageToLoad"/>
-        <actionGroup ref="FilterProductGridBySkuActionGroup" stepKey="filterProduct">
+        <actionGroup ref="filterProductGridBySku" stepKey="filterProduct">
             <argument name="product" value="ApiSimpleOne"/>
         </actionGroup>
 
@@ -137,11 +134,6 @@
         <click selector="{{AdminProductFormActionSection.saveButton}}"  stepKey="clickOnSaveButton"/>
         <waitForPageLoad stepKey="waitForPageLoad1"/>
         <see selector="{{AdminCategoryMessagesSection.SuccessMessage}}" userInput="You saved the product." stepKey="messageYouSavedTheProductIsShown"/>
-
-        <!--Run re-index task-->
-        <actionGroup ref="CliIndexerReindexActionGroup" stepKey="reindex">
-            <argument name="indices" value=""/>
-        </actionGroup>
 
         <!--Open Category in Store Front and select product attribute option from sidebar -->
         <actionGroup ref="SelectStorefrontSideBarAttributeOption" stepKey="selectStorefrontProductAttributeOption">
