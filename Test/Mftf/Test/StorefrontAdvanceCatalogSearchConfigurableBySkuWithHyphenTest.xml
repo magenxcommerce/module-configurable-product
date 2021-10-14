@@ -17,10 +17,7 @@
             <severity value="MAJOR"/>
             <testCaseId value="MC-20389"/>
             <group value="ConfigurableProduct"/>
-            <group value="SearchEngineElasticsearch"/>
-            <skip>
-                <issueId value="MC-34217"/>
-            </skip>
+            <group value="SearchEngineMysql"/>
         </annotations>
         <before>
             <createData entity="SimpleSubCategory" stepKey="categoryHandle" before="simple1Handle"/>
@@ -86,10 +83,6 @@
             <deleteData createDataKey="simple2Handle" stepKey="deleteSimple2" before="delete"/>
             <deleteData createDataKey="childProductHandle1" stepKey="deleteChildProduct1" before="delete"/>
             <deleteData createDataKey="childProductHandle2" stepKey="deleteChildProduct2" before="delete"/>
-            <deleteData createDataKey="productAttributeHandle" stepKey="deleteProductDropDownAttribute"/>
-
-            <!-- Reindex invalidated indices after product attribute has been created/deleted -->
-            <magentoCron groups="index" stepKey="reindexInvalidatedIndices"/>
         </after>
     </test>
 </tests>
